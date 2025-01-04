@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Графіки активаційних функцій</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+    }
+    canvas {
+      max-width: 100%;
+      margin-top: 20px;
+      max-height: 350px;
+    }
+    input[type="range"], input[type="number"] {
+      width: 80%;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    p {
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Активаційні функції: Класична та Квантова</h1>
+
+  <label for="x-value">Значення X (діапазон від -π до π):</label>
+  <input type="range" id="x-value" min="-3.14" max="3.14" step="0.01" value="0" />
+  <p id="value-display">X: 0</p>
+
+  <label for="qubits">Кількість кубітів для квантової активації:</label>
+  <input type="number" id="qubits" min="1" max="5" value="3" />
+  <p id="qubits-display">Кількість кубітів: 3</p>
+
+  <canvas id="activation-graph" width="500" height="350"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Класична сигмоїдна активація
+    function sigmoid(x) {
+      return 1 / (1 + Math.exp(-x));
+    }
+
+    // Імітація квантової активації (як синусоїдальна функція для імітації)
+    function quantumActivation(x, numQubits = 1) {
+      const amplitude = Math.sin(x * numQubits); // Симуляція зміни через синус
+      return (amplitude + 1) / 2; // Нормалізація в діапазоні [0, 1]
+    }
+
+    // Ініціалізація графіка
+    const ctx = document.getElementById('activation-graph').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 100 }, (_, i) => -Math.PI + (i * (2 * Math.PI) / 100)), // значення X від -π до π
+        datasets: [
+          {
+            label: 'Класична сигмоїдна',
+            data: Array.from({ length: 100 }, (_, i) => sigmoid(-Math.PI + (i * (2 * Math.PI) / 100))),
+            borderColor: 'red',
+            fill: false,
+            borderWidth: 2,
+            tension: 0.1
+          },
+          {
+            label: 'Квантова активація (3 кубіта)',
+            data: Array.from({ length: 100 }, (_, i) => quantumActivation(-Math.PI + (i * (2 * Math.PI) / 100), 3)),
+            borderColor: 'blue',
+            fill: false,
+            borderWidth: 2,
+            tension: 0.1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            ticks: {
+              callback: function(value) {
+                return value.toFixed(2); // Форматуємо значення X
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Оновлення графіка за допомогою значення X та кількості кубітів
+    document.getElementById('x-value').addEventListener('input', function(event) {
+      const xValue = parseFloat(event.target.value);
+      document.getElementById('value-display').textContent = `X: ${xValue.toFixed(2)}`;
+
+      const numQubits = parseInt(document.getElementById('qubits').value);
+      updateGraph(xValue, numQubits);
+    });
+
+    document.getElementById('qubits').addEventListener('input', function(event) {
+      const numQubits = parseInt(event.target.value);
+      document.getElementById('qubits-display').textContent = `Кількість кубітів: ${numQubits}`;
+
+      const xValue = parseFloat(document.getElementById('x-value').value);
+      updateGraph(xValue, numQubits);
+    });
+
+    // Функція для оновлення графіка
+    function updateGraph(xValue, numQubits) {
+      // Оновлення даних для класичної активації
+      chart.data.datasets[0].data = chart.data.labels.map(x => sigmoid(x + xValue)); // для класичної активації
+
+      // Оновлення даних для квантової активації з новою кількістю кубітів
+      chart.data.datasets[1].data = chart.data.labels.map(x => quantumActivation(x + xValue, numQubits)); // для квантової активації
+
+      // Оновлення графіка
+      chart.update();
+    }
+  </script>
+</body>
+</html>
